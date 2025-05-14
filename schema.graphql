@@ -1,6 +1,8 @@
 type GlobalStats @entity {
   id: ID! # singleton - "global"
   totalTransactionCount: BigInt! # Total number of aggregation transactions
+  totalFee: BigInt! # Total fees generated
+  totalGasUsed: BigInt! # Total gas used
   lastUpdatedTimestamp: BigInt! # Last updated timestamp
 }
 
@@ -17,14 +19,14 @@ type Exchange @entity {
   id: ID! # exchangeAddress
   address: String!
   name: String! # Exchange name (e.g., "UniswapV2", "UniswapV3")
-  totalVolume: BigInt! # Total volume routed through this exchange
   transactionCount: BigInt! # Number of transactions routed through this exchange
 }
 
 type User @entity {
   id: ID! # userAddress
   address: String!
-  totalVolumeTraded: BigInt! # Total volume traded by this user
+  totalFee: BigInt! # Total fees paid by this user
+  totalGasUsed: BigInt! # Total gas used by this user
   totalTransactionCount: BigInt! # Total number of transactions by this user
 }
 
@@ -51,7 +53,6 @@ type UserExchangeStat @entity {
   id: ID! # userAddress-exchangeAddress
   userId: String! # Reference to User.id
   exchangeId: String! # Reference to Exchange.id
-  volumeTraded: BigInt! # Volume traded by user on this exchange
   transactionCount: BigInt! # Number of transactions by user on this exchange
 }
 
@@ -78,13 +79,19 @@ type SwapEvent @entity {
   tokenOutAddress: String! # If available
   amountIn: BigInt!
   amountOut: BigInt! # If available
-  fee: BigInt! # If available
+  fee: BigInt!
+  gasPrice: BigInt!
+  gasUsed: BigInt!
 }
 
 type AggregatorToken {
   id: ID! # tokenAddress
   tradeInAmount: BigInt!
+  tradeInCount: BigInt!
+  avgTradeInAmount: BigInt!
   tradeOutAmount: BigInt!
+  tradeOutCount: BigInt!
+  avgTradeOutAmount: BigInt!
   feeAmount: BigInt!
   totalAmount: BigInt!
 }

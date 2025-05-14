@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 export const ROUTER_ADDRESSES: {
     [key: string]: { type: string; name: string; };
 } = {
+    // V2
     "0xfb8e1c3b833f9e67a71c859a132cf783b645e436": { type: "v2", name: "Uniswap V2" },
     "0xcba6b9a951749b8735c603e7ffc5151849248772": { type: "v2", name: "PancakeSwap V2 Deprecated" },
     "0x3a3ebae0eec80852fbc7b9e824c6756969cc8dc1": { type: "v2", name: "PancakeSwap V2" },
@@ -17,12 +18,16 @@ export const ROUTER_ADDRESSES: {
     "0xc80585f78a6e44fb46e1445006f820448840386e": { type: "v2", name: "Monda V2" },
     "0x3be99db246c81df2bd8dc0d708e03f64e1a84917": { type: "v2", name: "zkSwap V2" },
 
-    // TODO
-    // "0xc816865f172d640d93712c68a7e1f83f3fa63235": { type: "v2", name: "KURU_ROUTER_ADDRESS" },
-
+    // V3
     "0xabd915749969ae370cfd5421457f41f9dea8b882": { type: "v3", name: "Uniswap V2" },
     "0x46cf505b6ab4aea209480029c9492cb8014cc6a2": { type: "v3", name: "PancakeSwap V3" },
     "0x911418378663b093a81e4b84ca5bb0b910816935": { type: "v3", name: "zkSwap V3" },
+
+    // Orderbooks
+    "0xc816865f172d640d93712c68a7e1f83f3fa63235": { type: "kuru", name: "Kuru Orderbook" },
+
+    // Wrappers
+    "0x760afe86e5de5fa0ee542fc7b7b713e1c5425701": { type: "wrapper", name: "Monad Wrapper" },
 
 };
 
@@ -30,6 +35,9 @@ export const ROUTER_ADDRESSES: {
 // Function selectors
 export const SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR = "0x38ed1739"; // swapExactTokensForTokens function selector
 export const EXACT_INPUT_SINGLE_SELECTOR = "0x414bf389"; // exactInputSingle function selector
+export const DEPOSIT_SELECTOR = "0xd0e30db0"; // WETH deposit function selector
+export const WITHDRAW_SELECTOR = "0x2e1a7d4d"; // WETH withdraw function selector
+export const KURU_SWAP_SELECTOR = "0xffa5210a"; // Kuru swap function selector
 
 // Interface definitions for decoding
 export const aggregateInterface = new ethers.Interface([
@@ -39,6 +47,15 @@ export const aggregateInterface = new ethers.Interface([
 export const swapV2Interface = new ethers.Interface([
     "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) returns (uint256[] amounts)",
     "function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMin, uint160 sqrtPriceLimitX96)) external returns (uint256 amountOut)"
+]);
+
+export const wrapperInterface = new ethers.Interface([
+    "function deposit()",
+    "function withdraw(uint256 amount)"
+]);
+
+export const kuruInterface = new ethers.Interface([
+    "function anyToAnySwap(address[] pools, bool[] isBuy, bool[] isNativeSend, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)"
 ]);
 
 // Helper interfaces for additional swap methods

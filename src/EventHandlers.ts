@@ -8,7 +8,8 @@ import {
 import {
   decodeAggregateInput,
   decodeSwapData,
-  processSwap
+  processSwap,
+  updateGlobalStats
 } from "./helpers";
 import { exit } from "process";
 
@@ -27,7 +28,6 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
   } = event.params;
 
   // First capture our own trading information
-
   const entity: Aggregate_Aggregation = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     tokenAddress: tokenAddress,
@@ -42,6 +42,8 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
     tokenIn = {
       ...tokenIn,
       tradeInAmount: tokenIn.tradeInAmount + amount,
+      tradeInCount: tokenIn.tradeInCount + BigInt(1),
+      avgTradeInAmount: (tokenIn.tradeInAmount + amount) / (tokenIn.tradeInCount + BigInt(1)),
       totalAmount: tokenIn.totalAmount + amount,
       feeAmount: tokenIn.feeAmount + feeAmount,
     };
@@ -49,7 +51,11 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
     tokenIn = {
       id: tokenAddress,
       tradeInAmount: amount,
+      tradeInCount: BigInt(1),
+      avgTradeInAmount: amount,
       tradeOutAmount: BigInt(0),
+      tradeOutCount: BigInt(0),
+      avgTradeOutAmount: BigInt(0),
       feeAmount: feeAmount,
       totalAmount: amount,
     };
@@ -60,6 +66,8 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
     tokenOut = {
       ...tokenOut,
       tradeOutAmount: tokenOut.tradeOutAmount + destinationAmount,
+      tradeOutCount: tokenOut.tradeOutCount + BigInt(1),
+      avgTradeOutAmount: (tokenOut.tradeOutAmount + destinationAmount) / (tokenOut.tradeOutCount + BigInt(1)),
       totalAmount: tokenOut.totalAmount + destinationAmount,
       feeAmount: tokenOut.feeAmount + feeAmount,
     };
@@ -67,7 +75,11 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
     tokenOut = {
       id: outTokenAddress,
       tradeInAmount: BigInt(0),
+      tradeInCount: BigInt(0),
+      avgTradeInAmount: BigInt(0),
       tradeOutAmount: destinationAmount,
+      tradeOutCount: BigInt(1),
+      avgTradeOutAmount: destinationAmount,
       feeAmount: feeAmount,
       totalAmount: destinationAmount,
     };
@@ -77,6 +89,10 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
   context.AggregatorToken.set(tokenOut);
 
   context.Aggregate_Aggregation.set(entity);
+
+  // 1. Update Global Stats
+  const networkFee = (event.transaction.gasPrice || BigInt(0)) * BigInt(event.transaction.gas);
+  await updateGlobalStats(context, networkFee, event.transaction.gas);
 
   // Now break is down by exchange
 
@@ -88,8 +104,6 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
   }
   const blockNumber = BigInt(event.block.number);
   const timestamp = BigInt(event.block.timestamp || Math.floor(Date.now() / 1000));
-
-  console.log(`Processing Aggregation event: ${txHash}, token: ${tokenAddress}`);
 
   // Process the transaction input to extract swap details
   const txInput = event.transaction.input;
@@ -120,11 +134,9 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
 
       if (routerInfo && callData && callData.length >= 10) {
         // 3. Decode the swap data
-        const decodedSwap = decodeSwapData(targetAddress, callData);
+        const decodedSwap = decodeSwapData(targetAddress, callData, event.transaction.value);
 
         if (decodedSwap.success && decodedSwap.tokenInAddress && decodedSwap.amountIn) {
-
-          console.log(`Decoded swap !!! `);
 
           // 4. Process the swap and update all entities
           await processSwap(
@@ -138,7 +150,7 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
             decodedSwap.tokenInAddress,
             decodedSwap.tokenOutAddress,
             decodedSwap.amountIn,
-            event.logIndex,
+            event,
             i
           );
         }

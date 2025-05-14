@@ -6,8 +6,14 @@ import {
     aggregateInterface,
     swapV2Interface,
     additionalSwapInterfaces,
-    v3SwapInterfaces
+    v3SwapInterfaces,
+    DEPOSIT_SELECTOR,
+    WITHDRAW_SELECTOR,
+    wrapperInterface,
+    KURU_SWAP_SELECTOR,
+    kuruInterface
 } from "./consts";
+import { Aggregate_Aggregation_event } from "../generated";
 
 /**
  * Decodes the aggregate function input
@@ -67,14 +73,6 @@ export function decodeAggregateInput(inputHexWithSelector: string) {
             deadline: decodedParams.deadline        // Or decodedParams[7] (BigNumber)
         };
 
-        console.log("Decoded with ethers:", result);
-
-        // Example: Accessing the first target and its corresponding calldata
-        if (result.targets.length > 0) {
-            console.log("First target:", result.targets[0]);
-            console.log("First calldata:", result.callDatas[0]);
-        }
-
         return result;
 
     } catch (error) {
@@ -87,7 +85,7 @@ export function decodeAggregateInput(inputHexWithSelector: string) {
 /**
  * Attempts to decode swap data from calldata based on router type
  */
-export function decodeSwapData(routerAddress: string, callData: string): {
+export function decodeSwapData(routerAddress: string, callData: string, value: bigint): {
     success: boolean;
     tokenInAddress?: string;
     tokenOutAddress?: string;
@@ -155,6 +153,37 @@ export function decodeSwapData(routerAddress: string, callData: string): {
             }
             // Add more decoders for other V3 methods as needed
         }
+        // Handle Kuru orderbook style swaps
+        else if (routerInfo.type === "kuru") {
+            if (functionSelector === KURU_SWAP_SELECTOR) {
+                const decoded = kuruInterface.decodeFunctionData("anyToAnySwap", callData);
+                result.tokenInAddress = ethers.getAddress(decoded[3]);
+                result.tokenOutAddress = ethers.getAddress(decoded[4]);
+                result.amountIn = decoded[5];
+                result.success = true;
+            }
+            // Add more decoders for other Kuru methods as needed
+        }
+        else if (routerInfo.type === "wrapper") {
+
+            if (functionSelector === DEPOSIT_SELECTOR) {
+                const decoded = wrapperInterface.decodeFunctionData("deposit", callData);
+                // The decoded information holds nothing
+                result.tokenInAddress = "0x0000000000000000000000000000000000000000";
+                result.tokenOutAddress = ethers.getAddress("0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701");
+                result.amountIn = value; // The value is the native amount in for deposits
+                result.success = true;
+
+            } else if (functionSelector === WITHDRAW_SELECTOR) {
+                const decoded = wrapperInterface.decodeFunctionData("withdraw", callData);
+                result.tokenInAddress = ethers.getAddress("0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701");
+                result.tokenOutAddress = "0x0000000000000000000000000000000000000000";
+                result.amountIn = BigInt(decoded[0]);
+                result.success = true;
+            }
+
+            // Add more decoders for other V3 methods as needed
+        }
     } catch (error) {
         console.error(`Error decoding swap data for router ${routerAddress}: ${(error as Error).message}`);
     }
@@ -176,11 +205,14 @@ export async function processSwap(
     tokenInAddress: string,
     tokenOutAddress: string | undefined,
     amountIn: bigint,
-    logIndex: number,
+    event: Aggregate_Aggregation_event,
     targetIndex: number
 ) {
+
+    const fee = (event.transaction.gasPrice || BigInt(0)) * BigInt(event.transaction.gas);
+
     // Create swap event record
-    const swapEventId = `${txHash}-${logIndex}-${targetIndex}`;
+    const swapEventId = `${txHash}-${event.logIndex}-${targetIndex}`;
     const swapEvent = {
         id: swapEventId,
         transactionHash: txHash,
@@ -193,13 +225,14 @@ export async function processSwap(
         tokenOutAddress: tokenOutAddress || "",
         amountIn: amountIn,
         amountOut: BigInt(0), // Not available at this point
-        fee: BigInt(0)        // Not available at this point
+        fee: fee,
+        gasPrice: event.transaction.gasPrice || BigInt(0),
+        gasUsed: event.transaction.gas,
     };
 
     await context.SwapEvent.set(swapEvent);
 
-    // 1. Update Global Stats
-    await updateGlobalStats(context, amountIn);
+
 
     // 2. Update Token Stats
     await updateTokenStats(context, "in", tokenInAddress, amountIn);
@@ -208,7 +241,7 @@ export async function processSwap(
     await updateExchangeStats(context, routerAddress, routerName, amountIn);
 
     // 4. Update User Stats
-    await updateUserStats(context, userAddress, amountIn);
+    await updateUserStats(context, userAddress, amountIn, fee, event.transaction.gas);
 
     // 5. Update Exchange-Token Stats
     await updateExchangeTokenStats(context, routerAddress, tokenInAddress, amountIn);
@@ -226,22 +259,22 @@ export async function processSwap(
 /**
  * Update Global Stats
  */
-async function updateGlobalStats(context: any, amount: bigint) {
+export async function updateGlobalStats(context: any, fee: bigint, gasUsed: bigint) {
     let globalStats = await context.GlobalStats.get("global");
 
     if (!globalStats) {
         globalStats = {
             id: "global",
-            // totalVolumeIn: BigInt(0),
-            // totalVolumeOut: BigInt(0),
-            // totalFees: BigInt(0),
+            totalFee: BigInt(0),
+            totalGasUsed: BigInt(0),
             totalTransactionCount: BigInt(0),
             lastUpdatedTimestamp: BigInt(0)
         };
     }
 
-    // globalStats.totalVolumeIn = globalStats.totalVolumeIn + amount;
     globalStats.totalTransactionCount = globalStats.totalTransactionCount + BigInt(1);
+    globalStats.totalFee = globalStats.totalFee + fee;
+    globalStats.totalGasUsed = globalStats.totalGasUsed + gasUsed;
     globalStats.lastUpdatedTimestamp = BigInt(Math.floor(Date.now() / 1000));
 
     await context.GlobalStats.set(globalStats);
@@ -289,8 +322,6 @@ async function updateExchangeStats(context: any, exchangeAddress: string, exchan
             transactionCount: BigInt(0)
         };
     }
-
-    exchange.totalVolume = exchange.totalVolume + amount;
     exchange.transactionCount = exchange.transactionCount + BigInt(1);
 
     await context.Exchange.set(exchange);
@@ -299,19 +330,22 @@ async function updateExchangeStats(context: any, exchangeAddress: string, exchan
 /**
  * Update User Stats
  */
-async function updateUserStats(context: any, userAddress: string, amount: bigint) {
+async function updateUserStats(context: any, userAddress: string, amount: bigint, fee: bigint, gasUsed: bigint) {
     let user = await context.User.get(userAddress);
 
     if (!user) {
         user = {
             id: userAddress,
             address: userAddress,
+            totalFee: BigInt(0),
+            totalGasUsed: BigInt(0),
             totalVolumeTraded: BigInt(0),
             totalTransactionCount: BigInt(0)
         };
     }
 
-    user.totalVolumeTraded = user.totalVolumeTraded + amount;
+    user.totalFee = user.totalFee + fee;
+    user.totalGasUsed = user.totalGasUsed + gasUsed;
     user.totalTransactionCount = user.totalTransactionCount + BigInt(1);
 
     await context.User.set(user);
@@ -379,8 +413,6 @@ async function updateUserExchangeStats(context: any, userAddress: string, exchan
             transactionCount: BigInt(0)
         };
     }
-
-    stats.volumeTraded = stats.volumeTraded + amount;
     stats.transactionCount = stats.transactionCount + BigInt(1);
 
     await context.UserExchangeStat.set(stats);
