@@ -5,24 +5,24 @@ export const ROUTER_ADDRESSES: {
     [key: string]: { type: string; name: string; };
 } = {
     "0xfb8e1c3b833f9e67a71c859a132cf783b645e436": { type: "v2", name: "Uniswap V2" },
-    "0xCba6b9A951749B8735C603e7fFC5151849248772": { type: "v2", name: "PancakeSwap V2 Deprecated" },
-    "0x3a3eBAe0Eec80852FBC7B9E824C6756969cc8dc1": { type: "v2", name: "PancakeSwap V2" },
-    "0x006E8E1eAf72eEC070A136e0C315FB554dBeE55B": { type: "v2", name: "Taya V2" },
-    "0x64Aff7245EbdAAECAf266852139c67E4D8DBa4de": { type: "v2", name: "Madness V2" },
-    "0xCa810D095e90Daae6e867c19DF6D9A8C56db2c89": { type: "v2", name: "Bean V2" },
-    "0x619d07287e87C9c643C60882cA80d23C8ed44652": { type: "v2", name: "Nad.fun V2" },
-    "0x18556DA13313f3532c54711497A8FedAC273220E": { type: "v2", name: "LFJ V1" },
-    "0xc7E09B556E1a00cfc40b1039D6615f8423136Df7": { type: "v2", name: "Atlantis V2" },
-    "0xb6091233aAcACbA45225a2B2121BBaC807aF4255": { type: "v2", name: "OctoSwap V2" },
-    "0xc80585f78A6e44fb46e1445006f820448840386e": { type: "v2", name: "Monda V2" },
+    "0xcba6b9a951749b8735c603e7ffc5151849248772": { type: "v2", name: "PancakeSwap V2 Deprecated" },
+    "0x3a3ebae0eec80852fbc7b9e824c6756969cc8dc1": { type: "v2", name: "PancakeSwap V2" },
+    "0x006e8e1eaf72eec070a136e0c315fb554dbee55b": { type: "v2", name: "Taya V2" },
+    "0x64aff7245ebdaaecaf266852139c67e4d8dba4de": { type: "v2", name: "Madness V2" },
+    "0xca810d095e90daae6e867c19df6d9a8c56db2c89": { type: "v2", name: "Bean V2" },
+    "0x619d07287e87c9c643c60882ca80d23c8ed44652": { type: "v2", name: "Nad.fun V2" },
+    "0x18556da13313f3532c54711497a8fedac273220e": { type: "v2", name: "LFJ V1" },
+    "0xc7e09b556e1a00cfc40b1039d6615f8423136df7": { type: "v2", name: "Atlantis V2" },
+    "0xb6091233aacacba45225a2b2121bbac807af4255": { type: "v2", name: "OctoSwap V2" },
+    "0xc80585f78a6e44fb46e1445006f820448840386e": { type: "v2", name: "Monda V2" },
     "0x3be99db246c81df2bd8dc0d708e03f64e1a84917": { type: "v2", name: "zkSwap V2" },
 
     // TODO
     // "0xc816865f172d640d93712c68a7e1f83f3fa63235": { type: "v2", name: "KURU_ROUTER_ADDRESS" },
 
-    "0xaBD915749969aE370CFD5421457F41F9dEA8b882": { type: "v3", name: "Uniswap V2" },
+    "0xabd915749969ae370cfd5421457f41f9dea8b882": { type: "v3", name: "Uniswap V2" },
     "0x46cf505b6ab4aea209480029c9492cb8014cc6a2": { type: "v3", name: "PancakeSwap V3" },
-    "0x911418378663b093a81E4B84Ca5bb0b910816935": { type: "v3", name: "zkSwap V3" },
+    "0x911418378663b093a81e4b84ca5bb0b910816935": { type: "v3", name: "zkSwap V3" },
 
 };
 
