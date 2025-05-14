@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: monorail
+networks:
+  - id: 10143
+    start_block: 0
+    contracts:
+      - name: Aggregate
+        address:
+          - 0xC995498c22a012353FAE7eCC701810D673E25794
+        handler: src/EventHandlers.ts
+        events:
+          - event: Aggregation(address indexed tokenAddress, address indexed outTokenAddress, uint256 amount, uint256 destinationAmount, uint256 feeAmount)
+            field_selection:
+              transaction_fields:
+                - "hash"
+                - "from"
+                - "input"

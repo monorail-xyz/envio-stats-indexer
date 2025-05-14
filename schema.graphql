@@ -1,0 +1,99 @@
+type GlobalStats @entity {
+  id: ID! # singleton - "global"
+  totalTransactionCount: BigInt! # Total number of aggregation transactions
+  lastUpdatedTimestamp: BigInt! # Last updated timestamp
+}
+
+type Token @entity {
+  id: ID! # tokenAddress
+  address: String!
+  volumeIn: BigInt! # Volume when token is used as input
+  volumeOut: BigInt! # Volume when token is used as output
+  feesGenerated: BigInt! # Fees generated from this token
+  transactionCount: BigInt! # Number of transactions involving this token
+}
+
+type Exchange @entity {
+  id: ID! # exchangeAddress
+  address: String!
+  name: String! # Exchange name (e.g., "UniswapV2", "UniswapV3")
+  totalVolume: BigInt! # Total volume routed through this exchange
+  transactionCount: BigInt! # Number of transactions routed through this exchange
+}
+
+type User @entity {
+  id: ID! # userAddress
+  address: String!
+  totalVolumeTraded: BigInt! # Total volume traded by this user
+  totalTransactionCount: BigInt! # Total number of transactions by this user
+}
+
+# For token stats per exchange
+type ExchangeTokenStat @entity {
+  id: ID! # exchangeAddress-tokenAddress
+  exchangeId: String! # Reference to Exchange.id
+  tokenId: String! # Reference to Token.id
+  volumeIn: BigInt! # Volume of this token through this exchange
+  transactionCount: BigInt! # Number of transactions for this token on this exchange
+}
+
+# For user stats per token
+type UserTokenStat @entity {
+  id: ID! # userAddress-tokenAddress
+  userId: String! # Reference to User.id
+  tokenId: String! # Reference to Token.id
+  volumeTraded: BigInt! # Volume traded by user for this token
+  transactionCount: BigInt! # Number of transactions by user for this token
+}
+
+# For user stats per exchange
+type UserExchangeStat @entity {
+  id: ID! # userAddress-exchangeAddress
+  userId: String! # Reference to User.id
+  exchangeId: String! # Reference to Exchange.id
+  volumeTraded: BigInt! # Volume traded by user on this exchange
+  transactionCount: BigInt! # Number of transactions by user on this exchange
+}
+
+# For user stats per token per exchange (the most granular level)
+type UserTokenExchangeStat @entity {
+  id: ID! # userAddress-tokenAddress-exchangeAddress
+  userId: String! # Reference to User.id
+  tokenId: String! # Reference to Token.id
+  exchangeId: String! # Reference to Exchange.id
+  volumeTraded: BigInt! # Volume traded by user for this token on this exchange
+  transactionCount: BigInt! # Number of transactions by user for this token on this exchange
+}
+
+# To store individual swap data
+type SwapEvent @entity {
+  id: ID! # txHash-logIndex-targetIndex
+  transactionHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  userAddress: String!
+  exchangeAddress: String!
+  exchangeName: String!
+  tokenInAddress: String!
+  tokenOutAddress: String! # If available
+  amountIn: BigInt!
+  amountOut: BigInt! # If available
+  fee: BigInt! # If available
+}
+
+type AggregatorToken {
+  id: ID! # tokenAddress
+  tradeInAmount: BigInt!
+  tradeOutAmount: BigInt!
+  feeAmount: BigInt!
+  totalAmount: BigInt!
+}
+
+type Aggregate_Aggregation {
+  id: ID!
+  tokenAddress: String!
+  outTokenAddress: String!
+  amount: BigInt!
+  destinationAmount: BigInt!
+  feeAmount: BigInt!
+}
