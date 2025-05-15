@@ -19,7 +19,7 @@ export const ROUTER_ADDRESSES: {
     "0x3be99db246c81df2bd8dc0d708e03f64e1a84917": { type: "v2", name: "zkSwap V2" },
 
     // V3
-    "0xabd915749969ae370cfd5421457f41f9dea8b882": { type: "v3", name: "Uniswap V2" },
+    "0xabd915749969ae370cfd5421457f41f9dea8b882": { type: "v3", name: "Uniswap V3" },
     "0x46cf505b6ab4aea209480029c9492cb8014cc6a2": { type: "v3", name: "PancakeSwap V3" },
     "0x911418378663b093a81e4b84ca5bb0b910816935": { type: "v3", name: "zkSwap V3" },
 
@@ -46,7 +46,10 @@ export const aggregateInterface = new ethers.Interface([
 
 export const swapV2Interface = new ethers.Interface([
     "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) returns (uint256[] amounts)",
-    "function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMin, uint160 sqrtPriceLimitX96)) external returns (uint256 amountOut)"
+]);
+
+export const swapV3Interface = new ethers.Interface([
+    "function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 sqrtPriceLimitX96)) returns (uint256)",
 ]);
 
 export const wrapperInterface = new ethers.Interface([
@@ -58,34 +61,11 @@ export const kuruInterface = new ethers.Interface([
     "function anyToAnySwap(address[] pools, bool[] isBuy, bool[] isNativeSend, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)"
 ]);
 
-// Helper interfaces for additional swap methods
-export const additionalSwapInterfaces = {
-    swapETHForExactTokens: new ethers.Interface([
-        "function swapETHForExactTokens(uint256 amountOut, address[] path, address to, uint256 deadline) payable returns (uint256[] amounts)"
-    ]),
-    swapExactETHForTokens: new ethers.Interface([
-        "function swapExactETHForTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline) payable returns (uint256[] amounts)"
-    ]),
-    swapTokensForExactETH: new ethers.Interface([
-        "function swapTokensForExactETH(uint256 amountOut, uint256 amountInMax, address[] path, address to, uint256 deadline) returns (uint256[] amounts)"
-    ]),
-    swapExactTokensForETH: new ethers.Interface([
-        "function swapExactTokensForETH(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) returns (uint256[] amounts)"
-    ])
-};
-
-// V3 additional methods
-export const v3SwapInterfaces = {
-    exactInput: new ethers.Interface([
-        "function exactInput((bytes path, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMin)) external returns (uint256 amountOut)"
-    ])
-};
-
 // Native token address (for ETH/native chain token handling)
-export const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+export const NATIVE_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 // Wrapped native token addresses for common chains
 export const WRAPPED_NATIVE_TOKENS = {
     // Optimism
-    10143: "0x4200000000000000000000000000000000000006"
+    10143: "0x760afe86e5de5fa0ee542fc7b7b713e1c5425701"
 };

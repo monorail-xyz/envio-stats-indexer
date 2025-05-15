@@ -3,33 +3,16 @@ import {
     ROUTER_ADDRESSES,
     SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
     EXACT_INPUT_SINGLE_SELECTOR,
-    aggregateInterface,
     swapV2Interface,
-    additionalSwapInterfaces,
-    v3SwapInterfaces,
     DEPOSIT_SELECTOR,
     WITHDRAW_SELECTOR,
     wrapperInterface,
     KURU_SWAP_SELECTOR,
-    kuruInterface
+    kuruInterface,
+    swapV3Interface
 } from "./consts";
 import { Aggregate_Aggregation_event } from "../generated";
 
-/**
- * Decodes the aggregate function input
- */
-// export function decodeAggregateInput(input: string): { targets: string[], callDatas: string[]; } | null {
-//     try {
-//         const decodedCall = aggregateInterface.decodeFunctionData("aggregate", input);
-//         return {
-//             targets: decodedCall.targets as string[],
-//             callDatas: decodedCall.data as string[]
-//         };
-//     } catch (error) {
-//         console.error(`Error decoding aggregate input: ${(error as Error).message}`);
-//         return null;
-//     }
-// }
 
 export function decodeAggregateInput(inputHexWithSelector: string) {
     // 1. Define the ABI for the function
@@ -125,30 +108,15 @@ export function decodeSwapData(routerAddress: string, callData: string, value: b
                     result.success = true;
                 }
             }
-            // Handle swapExactETHForTokens
-            else if (functionSelector === "0x7ff36ab5") {
-                const decoded = additionalSwapInterfaces.swapExactETHForTokens.decodeFunctionData("swapExactETHForTokens", callData);
-                if (decoded.path && decoded.path.length > 0) {
-                    // For ETH input, we use a standard placeholder address
-                    result.tokenInAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"; // ETH placeholder
-                    // Amount is taken from transaction value
-
-                    if (decoded.path.length > 0) {
-                        result.tokenOutAddress = ethers.getAddress(decoded.path[decoded.path.length - 1]);
-                    }
-
-                    result.success = true;
-                }
-            }
-            // Add more decoders for other V2 methods as needed
         }
         // Handle V3 style swaps
         else if (routerInfo.type === "v3") {
             if (functionSelector === EXACT_INPUT_SINGLE_SELECTOR) {
-                const decoded = swapV2Interface.decodeFunctionData("exactInputSingle", callData);
-                result.tokenInAddress = ethers.getAddress(decoded.params.tokenIn);
-                result.tokenOutAddress = ethers.getAddress(decoded.params.tokenOut);
-                result.amountIn = BigInt(decoded.params.amountIn.toString());
+                const decoded = swapV3Interface.decodeFunctionData("exactInputSingle", callData);
+                const params = decoded[0];
+                result.tokenInAddress = ethers.getAddress(params[0]);
+                result.tokenOutAddress = ethers.getAddress(params[1]);
+                result.amountIn = params[5];
                 result.success = true;
             }
             // Add more decoders for other V3 methods as needed
