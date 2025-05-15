@@ -2,8 +2,6 @@ import { ethers } from "ethers";
 import { Aggregate, Aggregate_Aggregation } from "../generated";
 import {
   ROUTER_ADDRESSES,
-  SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
-  EXACT_INPUT_SINGLE_SELECTOR
 } from "./consts";
 import {
   decodeAggregateInput,
@@ -11,14 +9,12 @@ import {
   processSwap,
   updateGlobalStats
 } from "./helpers";
-import { exit } from "process";
 
 /**
  * Handle the Aggregation event
  */
 
 Aggregate.Aggregation.handler(async ({ event, context }) => {
-
   const {
     tokenAddress,
     outTokenAddress,

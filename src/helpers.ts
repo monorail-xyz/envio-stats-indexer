@@ -9,7 +9,9 @@ import {
     wrapperInterface,
     KURU_SWAP_SELECTOR,
     kuruInterface,
-    swapV3Interface
+    swapV3Interface,
+    LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
+    swapLFJInterface
 } from "./consts";
 import { Aggregate_Aggregation_event } from "../generated";
 
@@ -150,7 +152,22 @@ export function decodeSwapData(routerAddress: string, callData: string, value: b
                 result.success = true;
             }
 
-            // Add more decoders for other V3 methods as needed
+            // Add more decoders for other wrapper methods as needed
+        }
+        else if (routerInfo.type === "lfj-v1") {
+
+            if (functionSelector === LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR) {
+                const decoded = swapLFJInterface.decodeFunctionData("swapExactTokensForTokens", callData);
+                const path = decoded[2];
+                const route = path[2];
+
+                result.tokenInAddress = ethers.getAddress(route[0]);;
+                result.tokenOutAddress = ethers.getAddress(route[1]);
+                result.amountIn = decoded[0]; // The value is the native amount in for deposits
+                result.success = true;
+
+            }
+            // Add more decoders for other LFJ methods as needed
         }
     } catch (error) {
         console.error(`Error decoding swap data for router ${routerAddress}: ${(error as Error).message}`);
