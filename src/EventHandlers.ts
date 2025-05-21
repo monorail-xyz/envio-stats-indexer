@@ -155,6 +155,4 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
   } catch (error) {
     console.error(`Error processing Aggregation event: ${(error as Error).message}`);
   }
-
-  // exit(0);
 });

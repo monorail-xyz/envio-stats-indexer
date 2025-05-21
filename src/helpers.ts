@@ -13,7 +13,7 @@ import {
     LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
     swapLFJInterface
 } from "./consts";
-import { Aggregate_Aggregation_event } from "../generated";
+import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event } from "../generated";
 
 
 export function decodeAggregateInput(inputHexWithSelector: string) {
@@ -190,7 +190,7 @@ export async function processSwap(
     tokenInAddress: string,
     tokenOutAddress: string | undefined,
     amountIn: bigint,
-    event: Aggregate_Aggregation_event,
+    event: Aggregate_Aggregation_event | AggregateV3_AggregatedTrade_event,
     targetIndex: number
 ) {
 
@@ -216,8 +216,6 @@ export async function processSwap(
     };
 
     await context.SwapEvent.set(swapEvent);
-
-
 
     // 2. Update Token Stats
     await updateTokenStats(context, "in", tokenInAddress, amountIn);
