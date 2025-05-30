@@ -14,7 +14,7 @@ import {
     LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
     swapLFJInterface
 } from "./consts";
-import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event, DailyUserData, MonthlyUserData, WeeklyUserData } from "../generated";
+import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event, DailyUserData, MonthlyUserData } from "../generated";
 
 /**
  * Get the ISO 8601 week number for a given Date.
@@ -511,44 +511,6 @@ export async function updateTimeframeStats(userAddress: string, event: any, cont
         };
 
         await context.DailyUserData.set(dailyData);
-
-        // Weekly Stats
-        const currentUtcDay = date.getUTCDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-        const diffToMonday = (currentUtcDay === 0) ? -6 : (1 - currentUtcDay); // days to subtract to get to Monday
-
-        const weekStartDate = new Date(date.getTime()); // Clone date
-        weekStartDate.setUTCDate(date.getUTCDate() + diffToMonday);
-        weekStartDate.setUTCHours(0, 0, 0, 0);
-
-        const weekYear = weekStartDate.getUTCFullYear();
-        const isoWeekNumber = getISOWeek(weekStartDate); // Use the helper from helpers.ts
-        const weekId = `${weekYear}-W${String(isoWeekNumber).padStart(2, '0')}`;
-
-        let weeklyData: WeeklyUserData | undefined | null = await context.WeeklyUserData.get(weekId);
-        if (!weeklyData) {
-            weeklyData = {
-                id: weekId,
-                weekStartDate: BigInt(Math.floor(weekStartDate.getTime() / 1000)),
-                totalTransactions: BigInt(0),
-                uniqueUserAddresses: [],
-                uniqueUserCount: BigInt(0),
-            };
-        }
-
-
-        const weeklyUniqueAddresses = weeklyData.uniqueUserAddresses || [];
-        if (!weeklyData.uniqueUserAddresses.includes(userAddress)) {
-            weeklyUniqueAddresses.push(userAddress);
-        }
-
-        weeklyData = {
-            ...weeklyData,
-            totalTransactions: weeklyData.totalTransactions + BigInt(1),
-            uniqueUserAddresses: weeklyUniqueAddresses || [],
-            uniqueUserCount: BigInt(weeklyUniqueAddresses.length)
-        };
-
-        await context.WeeklyUserData.set(weeklyData);
 
         // Monthly Stats
         const monthId = `${year}-${String(month + 1).padStart(2, '0')}`;

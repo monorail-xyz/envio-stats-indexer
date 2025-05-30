@@ -114,14 +114,6 @@ type DailyUserData @entity {
   uniqueUserCount: BigInt! # Count of unique users on this day
 }
 
-type WeeklyUserData @entity {
-  id: ID! # YYYY-Www (e.g., 2024-W01)
-  weekStartDate: BigInt! # Timestamp for start of the week (Monday, UTC seconds)
-  totalTransactions: BigInt! # Total transactions by any user in this week
-  uniqueUserAddresses: [String!]! # List of unique user addresses interacting in this week
-  uniqueUserCount: BigInt! # Count of unique users in this week
-}
-
 type MonthlyUserData @entity {
   id: ID! # YYYY-MM
   monthStartDate: BigInt! # Timestamp for start of the month (UTC seconds)
