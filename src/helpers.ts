@@ -493,23 +493,22 @@ export async function updateTimeframeStats(userAddress: string, event: any, cont
                 id: dayId,
                 date: BigInt(dayTimestamp),
                 totalTransactions: BigInt(0),
-                uniqueUserAddresses: [],
                 uniqueUserCount: BigInt(0),
             };
         }
-
-        const dailyUniqueAddresses = dailyData.uniqueUserAddresses || [];
-        if (!dailyData.uniqueUserAddresses.includes(userAddress)) {
-            dailyUniqueAddresses.push(userAddress);
+        const dayUserId = `${dayId}-${userAddress}`;
+        const existingDay = await context.UserDay.get(dayUserId);
+        let dayUniqueUsers = dailyData.uniqueUserCount;
+        if (!existingDay) {
+            await context.UserDay.set(dayUserId, { id: dayUserId });
+            dayUniqueUsers = dayUniqueUsers + BigInt(1);
         }
 
         dailyData = {
             ...dailyData,
             totalTransactions: dailyData.totalTransactions + BigInt(1),
-            uniqueUserAddresses: dailyUniqueAddresses || [],
-            uniqueUserCount: BigInt(dailyUniqueAddresses.length)
+            uniqueUserCount: dayUniqueUsers,
         };
-
         await context.DailyUserData.set(dailyData);
 
         // Monthly Stats
@@ -521,21 +520,22 @@ export async function updateTimeframeStats(userAddress: string, event: any, cont
                 id: monthId,
                 monthStartDate: BigInt(monthTimestamp),
                 totalTransactions: BigInt(0),
-                uniqueUserAddresses: [],
                 uniqueUserCount: BigInt(0),
             };
         }
 
-        const monthlyUniqueAddresses = monthlyData.uniqueUserAddresses || [];
-        if (!monthlyData.uniqueUserAddresses.includes(userAddress)) {
-            monthlyUniqueAddresses.push(userAddress);
+        const monthUserId = `${monthId}-${userAddress}`;
+        const existingMonth = await context.UserMonth.get(monthUserId);
+        let monthUniqueUsers = monthlyData.uniqueUserCount;
+        if (!existingMonth) {
+            await context.UserMonth.set(monthUserId, { id: monthUserId });
+            monthUniqueUsers = monthUniqueUsers + BigInt(1);
         }
 
         monthlyData = {
             ...monthlyData,
             totalTransactions: monthlyData.totalTransactions + BigInt(1),
-            uniqueUserAddresses: monthlyUniqueAddresses || [],
-            uniqueUserCount: BigInt(monthlyUniqueAddresses.length)
+            uniqueUserCount: monthUniqueUsers
         };
 
         await context.MonthlyUserData.set(monthlyData);

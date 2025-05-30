@@ -110,7 +110,6 @@ type DailyUserData @entity {
   id: ID! # YYYY-MM-DD
   date: BigInt! # Timestamp for start of day (UTC seconds)
   totalTransactions: BigInt! # Total transactions by any user on this day
-  uniqueUserAddresses: [String!]! # List of unique user addresses interacting on this day
   uniqueUserCount: BigInt! # Count of unique users on this day
 }
 
@@ -118,6 +117,13 @@ type MonthlyUserData @entity {
   id: ID! # YYYY-MM
   monthStartDate: BigInt! # Timestamp for start of the month (UTC seconds)
   totalTransactions: BigInt! # Total transactions by any user in this month
-  uniqueUserAddresses: [String!]! # List of unique user addresses interacting in this month
   uniqueUserCount: BigInt! # Count of unique users in this month
+}
+
+type UserDay @entity {
+  id: ID! # `${dayId}-${userAddress}`
+}
+
+type UserMonth @entity {
+  id: ID! # `${monthId}-${userAddress}`
 }
