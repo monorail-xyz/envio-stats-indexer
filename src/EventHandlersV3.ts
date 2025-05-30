@@ -1,10 +1,13 @@
+// EventHandlerV3.ts
 import { AggregateV3, Aggregate_Aggregation } from "../generated";
 import {
   ROUTER_ADDRESSES,
 } from "./consts";
 import {
   processSwap,
-  updateGlobalStats
+  updateGlobalStats,
+  updateGlobalUserCount,
+  updateTimeframeStats
 } from "./helpers";
 
 /**
@@ -80,12 +83,17 @@ AggregateV3.Aggregated.handler(async ({ event, context }) => {
 
   context.AggregatorToken.set(storedTokenIn);
   context.AggregatorToken.set(storedTokenOut);
-
   context.Aggregate_Aggregation.set(entity);
 
   // 1. Update Global Stats
   const networkFee = (event.transaction.gasPrice || BigInt(0)) * BigInt(event.transaction.gas);
-  await updateGlobalStats(context, networkFee, event.transaction.gas);
+
+  const userAddress = event.transaction.from;
+  if (userAddress) {
+    await updateGlobalStats(context, networkFee, event.transaction.gas);
+    await updateTimeframeStats(userAddress, event, context);
+  }
+
 });
 
 
@@ -107,6 +115,8 @@ AggregateV3.AggregatedTrade.handler(async ({ event, context }) => {
         console.warn(`User address not available for tx: ${txHash}`);
         return;
       }
+      await updateGlobalUserCount(context, userAddress);
+
       const blockNumber = BigInt(event.block.number);
       const timestamp = BigInt(event.block.timestamp || Math.floor(Date.now() / 1000));
 
@@ -124,7 +134,7 @@ AggregateV3.AggregatedTrade.handler(async ({ event, context }) => {
         tokenOut,
         amount,
         event,
-        0 // index is not used in this case
+        0 // index is not used in this case.
       );
     }
   } catch (error) {

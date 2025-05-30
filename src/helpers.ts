@@ -1,3 +1,4 @@
+// helpers.ts
 import { ethers } from "ethers";
 import {
     ROUTER_ADDRESSES,
@@ -13,8 +14,24 @@ import {
     LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
     swapLFJInterface
 } from "./consts";
-import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event } from "../generated";
+import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event, DailyUserData, MonthlyUserData, WeeklyUserData } from "../generated";
 
+/**
+ * Get the ISO 8601 week number for a given Date.
+ * @param date The date to get the week number for.
+ * @returns The ISO week number.
+ */
+export function getISOWeek(date: Date): number {
+    const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Sunday is 0, Monday is 1, etc. Make Sunday 7 for calculation.
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    // Get first day of year
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    // Calculate full weeks to nearest Thursday
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
 
 export function decodeAggregateInput(inputHexWithSelector: string) {
     // 1. Define the ABI for the function
@@ -251,6 +268,7 @@ export async function updateGlobalStats(context: any, fee: bigint, gasUsed: bigi
             totalFee: BigInt(0),
             totalGasUsed: BigInt(0),
             totalTransactionCount: BigInt(0),
+            totalUniqueUsers: BigInt(0),
             lastUpdatedTimestamp: BigInt(0)
         };
     }
@@ -259,6 +277,31 @@ export async function updateGlobalStats(context: any, fee: bigint, gasUsed: bigi
     globalStats.totalFee = globalStats.totalFee + fee;
     globalStats.totalGasUsed = globalStats.totalGasUsed + gasUsed;
     globalStats.lastUpdatedTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
+    await context.GlobalStats.set(globalStats);
+}
+
+export async function updateGlobalUserCount(context: any, userAddress?: string) {
+    let globalStats = await context.GlobalStats.get("global");
+
+    if (!globalStats) {
+        globalStats = {
+            id: "global",
+            totalFee: BigInt(0),
+            totalGasUsed: BigInt(0),
+            totalTransactionCount: BigInt(0),
+            totalUniqueUsers: BigInt(0),
+            lastUpdatedTimestamp: BigInt(0)
+        };
+    }
+    globalStats.lastUpdatedTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
+    if (userAddress) {
+        let user = await context.User.get(userAddress);
+        if (!user) {
+            globalStats.totalUniqueUsers = (globalStats.totalUniqueUsers || BigInt(0)) + BigInt(1);
+        }
+    }
 
     await context.GlobalStats.set(globalStats);
 }
@@ -429,4 +472,112 @@ async function updateUserTokenExchangeStats(
     stats.transactionCount = stats.transactionCount + BigInt(1);
 
     await context.UserTokenExchangeStat.set(stats);
+}
+
+
+export async function updateTimeframeStats(userAddress: string, event: any, context: any) {
+    if (userAddress) { // Proceed only if userAddress is available
+        const blockTimestamp = Number(event.block.timestamp); // Unix timestamp in seconds
+        const date = new Date(blockTimestamp * 1000); // Convert to milliseconds for Date object
+
+        // Daily Stats
+        const year = date.getUTCFullYear();
+        const month = date.getUTCMonth(); // 0-indexed
+        const day = date.getUTCDate();
+        const dayId = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        let dailyData: DailyUserData | undefined | null = await context.DailyUserData.get(dayId);
+        if (!dailyData) {
+            const dayTimestamp = Date.UTC(year, month, day) / 1000;
+            dailyData = {
+                id: dayId,
+                date: BigInt(dayTimestamp),
+                totalTransactions: BigInt(0),
+                uniqueUserAddresses: [],
+                uniqueUserCount: BigInt(0),
+            };
+        }
+
+        const dailyUniqueAddresses = dailyData.uniqueUserAddresses || [];
+        if (!dailyData.uniqueUserAddresses.includes(userAddress)) {
+            dailyUniqueAddresses.push(userAddress);
+        }
+
+        dailyData = {
+            ...dailyData,
+            totalTransactions: dailyData.totalTransactions + BigInt(1),
+            uniqueUserAddresses: dailyUniqueAddresses || [],
+            uniqueUserCount: BigInt(dailyUniqueAddresses.length)
+        };
+
+        await context.DailyUserData.set(dailyData);
+
+        // Weekly Stats
+        const currentUtcDay = date.getUTCDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+        const diffToMonday = (currentUtcDay === 0) ? -6 : (1 - currentUtcDay); // days to subtract to get to Monday
+
+        const weekStartDate = new Date(date.getTime()); // Clone date
+        weekStartDate.setUTCDate(date.getUTCDate() + diffToMonday);
+        weekStartDate.setUTCHours(0, 0, 0, 0);
+
+        const weekYear = weekStartDate.getUTCFullYear();
+        const isoWeekNumber = getISOWeek(weekStartDate); // Use the helper from helpers.ts
+        const weekId = `${weekYear}-W${String(isoWeekNumber).padStart(2, '0')}`;
+
+        let weeklyData: WeeklyUserData | undefined | null = await context.WeeklyUserData.get(weekId);
+        if (!weeklyData) {
+            weeklyData = {
+                id: weekId,
+                weekStartDate: BigInt(Math.floor(weekStartDate.getTime() / 1000)),
+                totalTransactions: BigInt(0),
+                uniqueUserAddresses: [],
+                uniqueUserCount: BigInt(0),
+            };
+        }
+
+
+        const weeklyUniqueAddresses = weeklyData.uniqueUserAddresses || [];
+        if (!weeklyData.uniqueUserAddresses.includes(userAddress)) {
+            weeklyUniqueAddresses.push(userAddress);
+        }
+
+        weeklyData = {
+            ...weeklyData,
+            totalTransactions: weeklyData.totalTransactions + BigInt(1),
+            uniqueUserAddresses: weeklyUniqueAddresses || [],
+            uniqueUserCount: BigInt(weeklyUniqueAddresses.length)
+        };
+
+        await context.WeeklyUserData.set(weeklyData);
+
+        // Monthly Stats
+        const monthId = `${year}-${String(month + 1).padStart(2, '0')}`;
+        let monthlyData: MonthlyUserData | undefined | null = await context.MonthlyUserData.get(monthId);
+        if (!monthlyData) {
+            const monthTimestamp = Date.UTC(year, month, 1) / 1000;
+            monthlyData = {
+                id: monthId,
+                monthStartDate: BigInt(monthTimestamp),
+                totalTransactions: BigInt(0),
+                uniqueUserAddresses: [],
+                uniqueUserCount: BigInt(0),
+            };
+        }
+
+        const monthlyUniqueAddresses = monthlyData.uniqueUserAddresses || [];
+        if (!monthlyData.uniqueUserAddresses.includes(userAddress)) {
+            monthlyUniqueAddresses.push(userAddress);
+        }
+
+        monthlyData = {
+            ...monthlyData,
+            totalTransactions: monthlyData.totalTransactions + BigInt(1),
+            uniqueUserAddresses: monthlyUniqueAddresses || [],
+            uniqueUserCount: BigInt(monthlyUniqueAddresses.length)
+        };
+
+        await context.MonthlyUserData.set(monthlyData);
+    } else {
+        context.log.warn(`User address not available for transaction ${event.transaction.hash} in Aggregated event. Skipping user-specific stats.`);
+    }
 }

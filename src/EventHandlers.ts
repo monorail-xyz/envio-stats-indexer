@@ -7,7 +7,9 @@ import {
   decodeAggregateInput,
   decodeSwapData,
   processSwap,
-  updateGlobalStats
+  updateGlobalStats,
+  updateGlobalUserCount,
+  updateTimeframeStats
 } from "./helpers";
 
 /**
@@ -83,17 +85,21 @@ Aggregate.Aggregation.handler(async ({ event, context }) => {
 
   context.AggregatorToken.set(tokenIn);
   context.AggregatorToken.set(tokenOut);
-
   context.Aggregate_Aggregation.set(entity);
 
   // 1. Update Global Stats
   const networkFee = (event.transaction.gasPrice || BigInt(0)) * BigInt(event.transaction.gas);
-  await updateGlobalStats(context, networkFee, event.transaction.gas);
+
+
+  const userAddress = event.transaction.from;
+  if (userAddress) {
+    await updateGlobalStats(context, networkFee, event.transaction.gas);
+    await updateGlobalUserCount(context, userAddress);
+    await updateTimeframeStats(userAddress, event, context);
+  }
 
   // Now break is down by exchange
-
   const txHash = event.transaction.hash;
-  const userAddress = event.transaction.from;
   if (!userAddress) {
     console.warn(`User address not available for tx: ${txHash}`);
     return;
