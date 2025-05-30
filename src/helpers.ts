@@ -500,7 +500,7 @@ export async function updateTimeframeStats(userAddress: string, event: any, cont
         const existingDay = await context.UserDay.get(dayUserId);
         let dayUniqueUsers = dailyData.uniqueUserCount;
         if (!existingDay) {
-            await context.UserDay.set(dayUserId, { id: dayUserId });
+            await context.UserDay.set({ id: dayUserId });
             dayUniqueUsers = dayUniqueUsers + BigInt(1);
         }
 
@@ -528,7 +528,7 @@ export async function updateTimeframeStats(userAddress: string, event: any, cont
         const existingMonth = await context.UserMonth.get(monthUserId);
         let monthUniqueUsers = monthlyData.uniqueUserCount;
         if (!existingMonth) {
-            await context.UserMonth.set(monthUserId, { id: monthUserId });
+            await context.UserMonth.set({ id: monthUserId });
             monthUniqueUsers = monthUniqueUsers + BigInt(1);
         }
 
