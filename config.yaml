@@ -23,6 +23,7 @@ networks:
           - 0x84345F7bBC538e2C3D384800A2FF01DB4844822e
           - 0x7C8f8076B3E59F00000AEa4E4bF197d22a5e4F6D
           - 0x7B5dF408da2356e9Eecda0492104E758A2B6913d
+          - 0x11133460F102c5dE431F7749c8Bc2b7c172568E1
         handler: src/EventHandlersV3.ts
         events:
           - event: Aggregated(address indexed sender, address indexed tokenIn, address indexed tokenOut, uint256 amount, uint256 destinationAmount, uint256 feeAmount)

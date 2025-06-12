@@ -12,7 +12,9 @@ import {
     kuruInterface,
     swapV3Interface,
     LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
-    swapLFJInterface
+    swapLFJInterface,
+    CRYSTAL_SWAP_SELECTOR,
+    crystalInterface
 } from "./consts";
 import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event, DailyUserData, MonthlyUserData } from "../generated";
 
@@ -150,6 +152,21 @@ export function decodeSwapData(routerAddress: string, callData: string, value: b
                 result.success = true;
             }
             // Add more decoders for other Kuru methods as needed
+        }
+        if (routerInfo.type === "crystal") {
+            if (functionSelector === CRYSTAL_SWAP_SELECTOR) {
+                const decoded = crystalInterface.decodeFunctionData("swapExactTokensForTokens", callData);
+                if (decoded.path && decoded.path.length > 0) {
+                    result.tokenInAddress = ethers.getAddress(decoded.path[0]);
+                    result.amountIn = BigInt(decoded.amountIn.toString());
+
+                    if (decoded.path.length > 1) {
+                        result.tokenOutAddress = ethers.getAddress(decoded.path[decoded.path.length - 1]);
+                    }
+
+                    result.success = true;
+                }
+            }
         }
         else if (routerInfo.type === "wrapper") {
 

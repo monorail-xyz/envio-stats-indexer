@@ -25,6 +25,7 @@ export const ROUTER_ADDRESSES: {
 
     // Orderbooks
     "0xc816865f172d640d93712c68a7e1f83f3fa63235": { type: "kuru", name: "kuru-ob" },
+    "0x4e77071d619aa164ca6427547aefa41ac51be7a0": { type: "crystal", name: "crystal-ob" },
 
     // Wrappers
     "0x760afe86e5de5fa0ee542fc7b7b713e1c5425701": { type: "wrapper", name: "monad-wrapper" },
@@ -39,6 +40,7 @@ export const EXACT_INPUT_SINGLE_SELECTOR = "0x414bf389"; // exactInputSingle fun
 export const DEPOSIT_SELECTOR = "0xd0e30db0"; // WETH deposit function selector
 export const WITHDRAW_SELECTOR = "0x2e1a7d4d"; // WETH withdraw function selector
 export const KURU_SWAP_SELECTOR = "0xffa5210a"; // Kuru swap function selector
+export const CRYSTAL_SWAP_SELECTOR = "0x05a1450d"; // Crystal swap function selector
 
 // Interface definitions for decoding
 export const aggregateInterface = new ethers.Interface([
@@ -64,6 +66,10 @@ export const wrapperInterface = new ethers.Interface([
 
 export const kuruInterface = new ethers.Interface([
     "function anyToAnySwap(address[] pools, bool[] isBuy, bool[] isNativeSend, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)"
+]);
+
+export const crystalInterface = new ethers.Interface([
+    "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline, address referrer) returns (uint256[] amounts)",
 ]);
 
 // Native token address (for ETH/native chain token handling)
