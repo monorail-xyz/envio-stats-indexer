@@ -237,10 +237,10 @@ export async function processSwap(
         transactionHash: txHash,
         blockNumber: blockNumber,
         timestamp: timestamp,
-        userAddress: userAddress,
-        exchangeAddress: routerAddress,
+        userAddress: userAddress.toLowerCase(),
+        exchangeAddress: routerAddress.toLowerCase(),
         exchangeName: routerName,
-        tokenInAddress: tokenInAddress,
+        tokenInAddress: tokenInAddress.toLowerCase(),
         tokenOutAddress: tokenOutAddress || "",
         amountIn: amountIn,
         amountOut: BigInt(0), // Not available at this point
@@ -252,33 +252,31 @@ export async function processSwap(
     await context.SwapEvent.set(swapEvent);
 
     // 2. Update Token Stats
-    await updateTokenStats(context, "in", tokenInAddress, amountIn);
+    await updateTokenStats(context, "in", tokenInAddress.toLowerCase(), amountIn);
 
     // 3. Update Exchange Stats
-    await updateExchangeStats(context, routerAddress, routerName, amountIn);
+    await updateExchangeStats(context, routerAddress.toLowerCase(), routerName, amountIn);
 
     // 4. Update User Stats
-    await updateUserStats(context, userAddress, amountIn, fee, event.transaction.gas);
+    await updateUserStats(context, userAddress.toLowerCase(), amountIn, fee, event.transaction.gas);
 
     // 5. Update Exchange-Token Stats
-    await updateExchangeTokenStats(context, routerAddress, tokenInAddress, amountIn);
+    await updateExchangeTokenStats(context, routerAddress.toLowerCase(), tokenInAddress.toLowerCase(), amountIn);
 
     // 6. Update User-Token Stats
-    await updateUserTokenStats(context, userAddress, tokenInAddress, amountIn);
+    await updateUserTokenStats(context, userAddress.toLowerCase(), tokenInAddress.toLowerCase(), amountIn);
 
     // 7. Update User-Exchange Stats
-    await updateUserExchangeStats(context, userAddress, routerAddress, amountIn);
+    await updateUserExchangeStats(context, userAddress.toLowerCase(), routerAddress.toLowerCase(), amountIn);
 
     // 8. Update User-Token-Exchange Stats
-    await updateUserTokenExchangeStats(context, userAddress, tokenInAddress, routerAddress, amountIn);
+    await updateUserTokenExchangeStats(context, userAddress.toLowerCase(), tokenInAddress.toLowerCase(), routerAddress.toLowerCase(), amountIn);
 }
 
 /**
  * Update Global Stats
  */
-export async function updateGlobalStats(context: any, fee: bigint, gasUsed: bigint) {
-    let globalStats = await context.GlobalStats.get("global");
-
+export async function updateGlobalStats(context: any, globalStats: any, fee: bigint, gasUsed: bigint) {
     if (!globalStats) {
         globalStats = {
             id: "global",
@@ -301,6 +299,29 @@ export async function updateGlobalStats(context: any, fee: bigint, gasUsed: bigi
 export async function updateGlobalUserCount(context: any, userAddress?: string) {
     let globalStats = await context.GlobalStats.get("global");
 
+    if (!globalStats) {
+        globalStats = {
+            id: "global",
+            totalFee: BigInt(0),
+            totalGasUsed: BigInt(0),
+            totalTransactionCount: BigInt(0),
+            totalUniqueUsers: BigInt(0),
+            lastUpdatedTimestamp: BigInt(0)
+        };
+    }
+    globalStats.lastUpdatedTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
+    if (userAddress) {
+        let user = await context.User.get(userAddress);
+        if (!user) {
+            globalStats.totalUniqueUsers = (globalStats.totalUniqueUsers || BigInt(0)) + BigInt(1);
+        }
+    }
+
+    await context.GlobalStats.set(globalStats);
+}
+
+export async function updateGlobalUserCountWithStats(context: any, globalStats: any, userAddress?: string) {
     if (!globalStats) {
         globalStats = {
             id: "global",
