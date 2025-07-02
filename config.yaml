@@ -44,3 +44,27 @@ networks:
                 - "value"
                 - "gas"
                 - "gasPrice"
+      - name: AggregateV4
+        address:
+          - 0x525B929fCd6a64AfF834f4eeCc6E860486cED700
+          - 0x4Bac0f96A67cffdbAB84e989a62F7206fF14624a
+        handler: src/EventHandlersV4.ts
+        events:
+          - event: Aggregated(address indexed sender, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut, uint256 protocolFeeAmount, uint256 referrerFeeAmount, uint64 referrer, uint64 quote)
+            field_selection:
+              transaction_fields:
+                - "hash"
+                - "from"
+                - "input"
+                - "value"
+                - "gas"
+                - "gasPrice"
+          - event: AggregatedTrade(address indexed router, address indexed tokenIn, address indexed tokenOut, uint256 amount, uint64 referrer, uint64 quote)
+            field_selection:
+              transaction_fields:
+                - "hash"
+                - "from"
+                - "input"
+                - "value"
+                - "gas"
+                - "gasPrice"
