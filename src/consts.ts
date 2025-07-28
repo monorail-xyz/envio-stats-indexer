@@ -22,6 +22,7 @@ export const ROUTER_ADDRESSES: {
     "0xabd915749969ae370cfd5421457f41f9dea8b882": { type: "v3", name: "uniswap-v3" },
     "0x46cf505b6ab4aea209480029c9492cb8014cc6a2": { type: "v3", name: "pancakeswap-v3" },
     "0x911418378663b093a81e4b84ca5bb0b910816935": { type: "v3", name: "zkswap-v3" },
+    "0x021724a16c7831be1faa306a324438ed95a6144e": { type: "v3", name: "crust-v3" },
 
     // orderbooks
     "0xc816865f172d640d93712c68a7e1f83f3fa63235": { type: "kuru", name: "kuru-ob" },
