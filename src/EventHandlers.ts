@@ -21,6 +21,7 @@ Aggregate.Aggregation.handlerWithLoader({
   loader: async ({ event, context }) => {
     // Load all required data from the database
     // Return the data needed for event processing
+
     const {
       tokenAddress,
       outTokenAddress,

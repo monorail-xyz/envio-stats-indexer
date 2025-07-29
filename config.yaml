@@ -2,7 +2,7 @@
 name: monorail
 networks:
   - id: 10143
-    start_block: 0
+    start_block: 3600000
     contracts:
       - name: Aggregate
         address:

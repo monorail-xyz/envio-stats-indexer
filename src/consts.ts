@@ -27,6 +27,7 @@ export const ROUTER_ADDRESSES: {
     // orderbooks
     "0xc816865f172d640d93712c68a7e1f83f3fa63235": { type: "kuru", name: "kuru-ob" },
     "0x4e77071d619aa164ca6427547aefa41ac51be7a0": { type: "crystal", name: "crystal-ob" },
+    "0x08fedaace14eb141e51282441b05182519d853d1": { type: "clober", name: "clober-ob" },
 
     // wrappers
     "0x760afe86e5de5fa0ee542fc7b7b713e1c5425701": { type: "wrapper", name: "monad-wrapper" },
@@ -42,6 +43,7 @@ export const DEPOSIT_SELECTOR = "0xd0e30db0"; // WETH deposit function selector
 export const WITHDRAW_SELECTOR = "0x2e1a7d4d"; // WETH withdraw function selector
 export const KURU_SWAP_SELECTOR = "0xffa5210a"; // Kuru swap function selector
 export const CRYSTAL_SWAP_SELECTOR = "0x05a1450d"; // Crystal swap function selector
+export const CLOBER_SPEND_SELECTOR = "0xc0e8e89a"; // Clober spend function selector
 
 // Interface definitions for decoding
 export const aggregateInterface = new ethers.Interface([
@@ -71,6 +73,10 @@ export const kuruInterface = new ethers.Interface([
 
 export const crystalInterface = new ethers.Interface([
     "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline, address referrer) returns (uint256[] amounts)",
+]);
+
+export const cloberInterface = new ethers.Interface([
+    "function Take(uint192 bookId,address user, int24 tick, uint64 unit)",
 ]);
 
 // Native token address (for ETH/native chain token handling)

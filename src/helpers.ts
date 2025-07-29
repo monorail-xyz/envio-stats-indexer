@@ -14,7 +14,9 @@ import {
     LFJ_SWAP_EXACT_TOKENS_FOR_TOKENS_SELECTOR,
     swapLFJInterface,
     CRYSTAL_SWAP_SELECTOR,
-    crystalInterface
+    crystalInterface,
+    CLOBER_SPEND_SELECTOR,
+    // cloberInterface
 } from "./consts";
 import { Aggregate_Aggregation_event, AggregateV3_AggregatedTrade_event, DailyUserData, MonthlyUserData } from "../generated";
 
@@ -166,6 +168,16 @@ export function decodeSwapData(routerAddress: string, callData: string, value: b
 
                     result.success = true;
                 }
+            }
+        }
+        if (routerInfo.type === "clober") {
+            if (functionSelector === CLOBER_SPEND_SELECTOR) {
+                // !!! NOTE !!!
+                // There is no way to determine the tokens for the swap using the Clober spend function
+                result.amountIn = BigInt(1);
+                result.tokenInAddress = ethers.getAddress("0x0000000000000000000000000000000000000000");
+                result.tokenOutAddress = ethers.getAddress("0x0000000000000000000000000000000000000000");
+                result.success = true;
             }
         }
         else if (routerInfo.type === "wrapper") {
