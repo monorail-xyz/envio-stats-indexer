@@ -12,7 +12,7 @@ export const ROUTER_ADDRESSES: {
     "0x64aff7245ebdaaecaf266852139c67e4d8dba4de": { type: "v2", name: "madness-v2" },
     "0xca810d095e90daae6e867c19df6d9a8c56db2c89": { type: "v2", name: "bean-v2" },
     "0x619d07287e87c9c643c60882ca80d23c8ed44652": { type: "v2", name: "nadfun-v2" },
-    "0xac61da16066d7eddc2835d3225a3bc2eedd11f0f": { type: "v2", name: "stagefun-v2" },
+    "0x4b883edfd434d74ebe82fe6db5f058e6ff08cd53": { type: "v2", name: "stagefun-v2" },
     "0x18556da13313f3532c54711497a8fedac273220e": { type: "lfj-v1", name: "lfj-v1" },
     "0xc7e09b556e1a00cfc40b1039d6615f8423136df7": { type: "v2", name: "atlantis-v2" },
     "0xb6091233aacacba45225a2b2121bbac807af4255": { type: "v2", name: "octoswap-v2" },

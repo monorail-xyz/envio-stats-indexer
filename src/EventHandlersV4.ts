@@ -6,7 +6,7 @@ import {
 import {
   processSwap,
   updateGlobalStats,
-  updateGlobalUserCountWithStats,
+  // updateGlobalUserCountWithStats,
   updateTimeframeStats
 } from "./helpers";
 
@@ -172,7 +172,7 @@ AggregateV4.AggregatedTrade.handlerWithLoader({
           console.warn(`User address not available for tx: ${txHash}`);
           return;
         }
-        await updateGlobalUserCountWithStats(context, globalStats, userAddress);
+        // await updateGlobalUserCountWithStats(context, globalStats, userAddress);
 
         const blockNumber = BigInt(event.block.number);
         const timestamp = BigInt(event.block.timestamp || Math.floor(Date.now() / 1000));

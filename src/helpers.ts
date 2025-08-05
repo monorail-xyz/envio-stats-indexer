@@ -270,19 +270,19 @@ export async function processSwap(
     await updateExchangeStats(context, routerAddress.toLowerCase(), routerName, amountIn);
 
     // 4. Update User Stats
-    await updateUserStats(context, userAddress.toLowerCase(), amountIn, fee, event.transaction.gas);
+    // await updateUserStats(context, userAddress.toLowerCase(), amountIn, fee, event.transaction.gas);
 
     // 5. Update Exchange-Token Stats
     await updateExchangeTokenStats(context, routerAddress.toLowerCase(), tokenInAddress.toLowerCase(), amountIn);
 
     // 6. Update User-Token Stats
-    await updateUserTokenStats(context, userAddress.toLowerCase(), tokenInAddress.toLowerCase(), amountIn);
+    // await updateUserTokenStats(context, userAddress.toLowerCase(), tokenInAddress.toLowerCase(), amountIn);
 
     // 7. Update User-Exchange Stats
-    await updateUserExchangeStats(context, userAddress.toLowerCase(), routerAddress.toLowerCase(), amountIn);
+    // await updateUserExchangeStats(context, userAddress.toLowerCase(), routerAddress.toLowerCase(), amountIn);
 
     // 8. Update User-Token-Exchange Stats
-    await updateUserTokenExchangeStats(context, userAddress.toLowerCase(), tokenInAddress.toLowerCase(), routerAddress.toLowerCase(), amountIn);
+    // await updateUserTokenExchangeStats(context, userAddress.toLowerCase(), tokenInAddress.toLowerCase(), routerAddress.toLowerCase(), amountIn);
 }
 
 /**

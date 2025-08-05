@@ -8,7 +8,7 @@ import {
   decodeSwapData,
   processSwap,
   updateGlobalStats,
-  updateGlobalUserCount,
+  // updateGlobalUserCount,
   updateTimeframeStats
 } from "./helpers";
 
@@ -130,7 +130,7 @@ Aggregate.Aggregation.handlerWithLoader({
     const userAddress = event.transaction.from;
     if (userAddress) {
       await updateGlobalStats(context, globalStats, networkFee, event.transaction.gas);
-      await updateGlobalUserCount(context, userAddress);
+      // await updateGlobalUserCount(context, userAddress);
       await updateTimeframeStats(userAddress, event, context);
     }
 
